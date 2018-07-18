@@ -12,9 +12,6 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-// Blinky on receipt
-#define LED 13
-
 struct dataStruct{
   int weight; 
   int packetnum;
@@ -22,7 +19,6 @@ struct dataStruct{
 
 void setup()
 {
-  pinMode(LED, OUTPUT);
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
@@ -61,27 +57,23 @@ void setup()
   rf95.setTxPower(23, false);
 }
 
-//int16_t packetnum = 0;  // packet counter, we increment per xmission
 
 void loop()
 {
-  if (rf95.available())
+  if (rf95.available()) //Only true if there is a message to be received
   {
-    // Should be a message for us now
+    // For the message received
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
 
     if (rf95.recv(buf, &len))
     {
-      digitalWrite(LED, HIGH);
-      RH_RF95::printBuffer("Received: ", buf, len);
+      rf95.printBuffer("Received: ", buf, len);
       memcpy(&myData, buf, sizeof(myData));
       Serial.println("Got: ");
       Serial.println(myData.weight);
       Serial.println(myData.packetnum);
-//      char * json_string = (char*) buf;
-//      Serial.println((char*) buf);
-       Serial.print("RSSI: ");
+      Serial.print("RSSI: ");
       Serial.println(rf95.lastRssi(), DEC);
 
       // Send a reply
@@ -93,15 +85,15 @@ void loop()
       // Send received data onwards
       rf95.send(buf, sizeof(buf));
       rf95.waitPacketSent();
-      Serial.println("Sent data on");
-      
-      digitalWrite(LED, LOW);
+      Serial.println("Sent data on");      
     }
     else
     {
-//      Serial.println("Receive failed");
-//
-//      Serial.println("Transmitting..."); // Send a message to rf95_server
+      Serial.println("Receive failed");   
+    }
+  }
+  else{
+//    Serial.println("Transmitting...");
 //  
 //      char radiopacket[20] = "Packet #      ";
 //      itoa(packetnum++, radiopacket+13, 10);
@@ -140,10 +132,6 @@ void loop()
 //      {
 //        Serial.println("No reply, is there a listener around?");
 //      }
-      
-    }
-  }
-  else{
   }
 }
 
