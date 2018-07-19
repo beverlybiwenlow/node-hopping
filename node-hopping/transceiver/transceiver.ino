@@ -64,7 +64,7 @@ void setup(){
 
 
 void loop(){
-  delay(120);
+  delay(550);
   if (rf95.available()){
     // For the message received
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
