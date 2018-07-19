@@ -29,7 +29,7 @@ void setup(){
   }
   delay(100);
 
-  Serial.println("Feather LoRa RX Test!");
+  Serial.println("Feather LoRa TXRX Test");
 
   // manual reset
   digitalWrite(RFM95_RST, LOW);
@@ -64,6 +64,7 @@ void setup(){
 
 
 void loop(){
+  delay(120);
   if (rf95.available()){
     // For the message received
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
