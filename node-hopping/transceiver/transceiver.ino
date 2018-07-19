@@ -130,7 +130,7 @@ void interrupt_func(){
     toTransmit = true;
   }
 
-  // Regardless of new cycle or not
+  // Regardless of new cycle or nots
   previousMillis = currentMillis;
   pulseCount++;
   Serial.println(pulseCount);
