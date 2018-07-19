@@ -12,8 +12,6 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-#define LED_pin 13
-
 struct dataStruct{
   int weight; 
   int packetnum;
@@ -22,6 +20,7 @@ byte tx_buf[sizeof(myData)] = {0};
 
 int pulseCount = 0;
 double previousMillis;
+boolean toTransmit = false;
 
 void setup(){
   pinMode(RFM95_RST, OUTPUT);
@@ -66,13 +65,29 @@ void setup(){
   myData.packetnum = 0;
 
   // Initialize interrupt
-  attachInterrupt(5, interrupt_func, CHANGE);//Initialize the intterrupt pin
+  attachInterrupt(5, interrupt_func, CHANGE);
 }
 
 
 void loop(){
   delay(550);
-  if (rf95.available()){
+  if(toTransmit){
+    if(myData.packetnum != 0){
+      // Transmit data
+      Serial.print("Transmitting..."); // Send a message to rf95_server
+      byte data_size = sizeof(myData);
+      memcpy(tx_buf, &myData, data_size);
+      Serial.print(myData.weight);
+      Serial.println(myData.packetnum);
+      SPI.usingInterrupt(5);
+      rf95.send((uint8_t *)tx_buf, data_size);
+      rf95.waitPacketSent();
+      rf95.setModeRx();
+      toTransmit = false;
+    }
+  }
+  else{
+   if (rf95.available()){
     // For the message received
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
@@ -86,12 +101,6 @@ void loop(){
 //      Serial.print("RSSI: ");
 //      Serial.println(rf95.lastRssi(), DEC);
 
-//      // Send a reply
-//      uint8_t reply[] = "And hello back to you";
-//      rf95.send(reply, sizeof(reply));
-//      rf95.waitPacketSent();
-//      Serial.println("Sent a reply");
-
       // Send received data onwards
       if(rxData.weight <= myData.weight){
         rf95.send(buf, sizeof(buf));
@@ -104,49 +113,11 @@ void loop(){
     }
   }
 
-  // If there is no message to receive
+  // If there is no message to receive do nothing
   else{
-    Serial.println("Nothing to receive...");
-    Serial.println(myData.packetnum);
-//    Serial.println("Transmitting..."); // Send a message to rf95_server
-//    delay(1000);
-//    byte data_size = sizeof(myData);
-//    memcpy(tx_buf, &myData, data_size);
-//    
-//    Serial.println("Sending...");
-//    Serial.println(myData.weight);
-//    Serial.println(myData.packetnum);
-//    delay(10);
-//    rf95.send((uint8_t *)tx_buf, data_size);
-//    myData.packetnum++;
-//
-//    Serial.println("Waiting for packet to complete..."); 
-//    delay(10);
-//    rf95.waitPacketSent();
-//    rf95.setModeRx();
-    
-//    // Now wait for a reply
-//    uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-//    uint8_t len = sizeof(buf);
-//  
-//    Serial.println("Waiting for reply...");
-//    if(rf95.waitAvailableTimeout(1000)){ 
-//      // Should be a reply message for us now   
-//      if(rf95.recv(buf, &len)){
-//        Serial.print("Got reply: ");
-//        Serial.println((char*)buf);
-//        Serial.print("RSSI: ");
-//        Serial.println(rf95.lastRssi(), DEC);    
-//      }
-//      else{
-//        Serial.println("Receive failed");
-//      }
-//    }
-//    else{
-//      Serial.println("No reply, is there a listener around?");
-//    }
   }
-}
+} 
+  }
 
 void interrupt_func(){
   double currentMillis = millis();
@@ -156,19 +127,10 @@ void interrupt_func(){
     Serial.println("New cycle");
     myData.packetnum = pulseCount;
     pulseCount = 0;
-
-    // Transmit data
-//    Serial.println("Transmitting..."); // Send a message to rf95_server
-//    byte data_size = sizeof(myData);
-//    memcpy(tx_buf, &myData, data_size);
-//    Serial.println(myData.weight);
-//    Serial.println(myData.packetnum);
-//    delay(10);
-//    rf95.send((uint8_t *)tx_buf, data_size);
-//    delay(10);
-//    rf95.waitPacketSent();
-//    rf95.setModeRx();
+    toTransmit = true;
   }
+
+  // Regardless of new cycle or not
   previousMillis = currentMillis;
   pulseCount++;
   Serial.println(pulseCount);
