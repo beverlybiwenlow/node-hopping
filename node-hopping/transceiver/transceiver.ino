@@ -14,7 +14,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 struct dataStruct{
   int weight; 
-  int packetnum;
+  int pulseNum;
 }myData, rxData;
 byte tx_buf[sizeof(myData)] = {0};
 
@@ -71,8 +71,10 @@ void setup(){
 
 void loop(){
   delay(550);
+  
   if(toTransmit){
     if(myData.packetnum != 0){
+      
       // Transmit data
       Serial.print("Transmitting..."); // Send a message to rf95_server
       byte data_size = sizeof(myData);
@@ -86,6 +88,7 @@ void loop(){
       toTransmit = false;
     }
   }
+  
   else{
    if (rf95.available()){
     // For the message received
@@ -95,8 +98,8 @@ void loop(){
     if (rf95.recv(buf, &len)){
       rf95.printBuffer("Received: ", buf, len);
       memcpy(&rxData, buf, sizeof(rxData));
-      Serial.println("Got: ");
-      Serial.println(rxData.weight);
+      Serial.print("Got: ");
+      Serial.print(rxData.weight);
       Serial.println(rxData.packetnum);
 //      Serial.print("RSSI: ");
 //      Serial.println(rf95.lastRssi(), DEC);
@@ -113,7 +116,7 @@ void loop(){
     }
   }
 
-  // If there is no message to receive do nothing
+  // If there is no message to receive, do nothing
   else{
   }
 } 
