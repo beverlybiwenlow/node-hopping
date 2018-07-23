@@ -60,9 +60,9 @@ void setup(){
   // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
   
-  // Initialize data. Weight fixed but packetnum changes.
+  // Initialize data. Weight fixed but pulseNum changes.
   myData.weight = 2;
-  myData.packetnum = 0;
+  myData.pulseNum = 0;
 
   // Initialize interrupt
   attachInterrupt(5, interrupt_func, CHANGE);
@@ -73,14 +73,14 @@ void loop(){
   delay(550);
   
   if(toTransmit){
-    if(myData.packetnum != 0){
+    if(myData.pulseNum != 0){
       
       // Transmit data
       Serial.print("Transmitting..."); // Send a message to rf95_server
       byte data_size = sizeof(myData);
       memcpy(tx_buf, &myData, data_size);
       Serial.print(myData.weight);
-      Serial.println(myData.packetnum);
+      Serial.println(myData.pulseNum);
       SPI.usingInterrupt(5);
       rf95.send((uint8_t *)tx_buf, data_size);
       rf95.waitPacketSent();
@@ -100,12 +100,12 @@ void loop(){
       memcpy(&rxData, buf, sizeof(rxData));
       Serial.print("Got: ");
       Serial.print(rxData.weight);
-      Serial.println(rxData.packetnum);
+      Serial.println(rxData.pulseNum);
 //      Serial.print("RSSI: ");
 //      Serial.println(rf95.lastRssi(), DEC);
 
       // Send received data onwards
-      if(rxData.weight <= myData.weight){
+      if(rxData.weight < myData.weight){
         rf95.send(buf, sizeof(buf));
         rf95.waitPacketSent();
         Serial.println("Sent data on"); 
@@ -128,7 +128,7 @@ void interrupt_func(){
 
     // Reset cycle
     Serial.println("New cycle");
-    myData.packetnum = pulseCount;
+    myData.pulseNum = pulseCount;
     pulseCount = 0;
     toTransmit = true;
   }

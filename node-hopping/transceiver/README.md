@@ -2,6 +2,11 @@
 
 The weight of the sensor is defined in the setup function and can be changed.
 
-How the sensor will function is that it is both transmitting its own data, and receiving data from other sensors. However, priority will be placed on its transmission since we do not want to lose any data. This is done through a interrupt mechanism. When there is a pulse on the hall sensor, the interrupt will be triggered and the sensor will not be receiving data from other sensors and will run the Interrupt Service Routine function instead.
+How the sensor will function is that it is both transmitting its own data, and receiving data from other sensors. However, priority must be placed on its transmission since we do not want to lose any data. To implement this priority, we use an interrupt mechanism. 
 
-Sending a reply after receiving data and waiting for a reply after transmitting data have been commented out in this sketch for now. They are useful things to have but the many transmissions has made the program quite messy. This part is to be improved.
+Whenever there is a pulse on the hall sensor, the interrupt will be triggered and the sensor will stop what it is doing, and will run the Interrupt Service Routine (ISR) function instead. The ISR updates a pulse count. If the hall sensor goes 3 seconds without being triggered, a transmit boolean will be set, the pulse count will be stored into a variable to be transmitted and will be reset to 0.
+
+In the main loop, if the transmit boolean is set, the variable with the pulse count will be transmitted. After transmitting, this boolean will be reset. If the transmit boolean is not set (ie. there is nothing to transmit), then the sensor will focus on receiving data from other sensors. If there is an incoming message from a sensor with a smaller weight, then its data will be retransmitted.
+
+## Note:
+Sending a reply after receiving data and waiting for a reply after transmitting data have been removed from this sketch for now. They are useful things to have but the many transmissions has made the program quite messy. This part is to be improved.
