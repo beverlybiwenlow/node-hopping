@@ -1,5 +1,5 @@
 #include <SPI.h>
-#include <RH_RF95.h>
+#include <lmic.h>
 
 /* for feather m0 RFM9x*/
 #define RFM95_CS 8
@@ -21,6 +21,7 @@ byte tx_buf[sizeof(myData)] = {0};
 int pulseCount = 0;
 double previousMillis;
 boolean toTransmit = false;
+const int channels[] = {902500000, 902300000, 902700000, 902900000, 903100000, 903300000, 903500000, 903700000};
 
 void setup(){
   pinMode(RFM95_RST, OUTPUT);
