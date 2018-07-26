@@ -65,7 +65,7 @@ void setup(){
   myData.pulseNum = 0;
 
   // Initialize interrupt
-  attachInterrupt(5, interrupt_func, CHANGE);
+  attachInterrupt(5, ISR, CHANGE);
 }
 
 
@@ -122,7 +122,7 @@ void loop(){
 } 
   }
 
-void interrupt_func(){
+void ISR(){
   double currentMillis = millis();
   if (currentMillis - previousMillis > 3000){
 
